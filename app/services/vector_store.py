@@ -146,4 +146,4 @@ class VectorStore:
             data = json.load(f)
         self._docs = data.get("docs", {})
         self._idf  = data.get("idf", {})
-        print(f"📚 VectorStore loaded {len(self._docs)} documents from {path}")
+        print(f"[RAG] VectorStore loaded {len(self._docs)} documents from {path}")

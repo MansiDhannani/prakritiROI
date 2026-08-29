@@ -22,9 +22,9 @@ def get_store() -> VectorStore:
     if _store is None:
         _store = VectorStore(persist_path=VECTOR_DB_PATH)
         if _store.count() == 0:
-            print("🔨 Building RAG index from scratch...")
+            print("[RAG] Building RAG index from scratch...")
             build_index(_store)
-            print(f"✅ RAG index built: {_store.count()} documents indexed")
+            print(f"[RAG] RAG index built: {_store.count()} documents indexed")
     return _store
 
 
