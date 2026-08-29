@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local SQLite databases
+*.db
+*.db-journal
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+
+# Local extracted folders
+ecovalue_backend_rag/
+
+
