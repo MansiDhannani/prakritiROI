@@ -10,7 +10,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 import uuid, os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ecovalue.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///./ecovalue.db"
 
 # Railway/Render Postgres fix: they give postgres:// but SQLAlchemy needs postgresql://
 if DATABASE_URL.startswith("postgres://"):

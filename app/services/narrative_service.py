@@ -17,7 +17,7 @@ from groq import Groq
 from app.models.schemas import NarrativeResponse
 
 
-GROQ_MODEL = "qwen/qwen3-32b"  # Updated: was llama-3.1-70b-versatile (decommissioned)
+GROQ_MODEL = "qwen/qwen3.8-27b"  # Updated to use the active Qwen 3.8 model on this Groq endpoint
 
 
 def _get_api_key() -> str:

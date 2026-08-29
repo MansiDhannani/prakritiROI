@@ -27,7 +27,7 @@ def test_groq_key():
         
         # Attempt a simple completion using a standard model
         completion = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Confirm if the API key is working by saying 'System Online'."}
