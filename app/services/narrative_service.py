@@ -85,6 +85,32 @@ def generate_narrative(
     policy_context:   Optional[str] = None,
 ) -> NarrativeResponse:
 
+    # Gracefully handle missing GROQ_API_KEY
+    if not os.getenv("GROQ_API_KEY"):
+        annual_val = valuation_result.get("annual_value_mid", 0)
+        npv        = valuation_result.get("npv", 0)
+        carbon_t   = valuation_result.get("carbon_annual_tonnes", 0)
+        bio_idx    = valuation_result.get("biodiversity_index", 0)
+        return NarrativeResponse(
+            narrative=(
+                "EcoValue India Policy Brief: The AI Policy Narrative feature is currently disabled because "
+                "no GROQ_API_KEY was found in the environment variables.\n\n"
+                "To enable this feature, please follow these steps:\n"
+                "1. Get a free API key from the Groq Console at https://console.groq.com.\n"
+                "2. Create a .env file locally and add your key: GROQ_API_KEY=gsk_...\n"
+                "3. Restart the backend server."
+            ),
+            key_findings=[
+                f"Ecosystem services annual value midpoint: Rs.{annual_val/1e7:.2f} Cr/year",
+                f"10-year Net Present Value (NPV): Rs.{npv/1e7:.2f} Cr",
+                f"Annual carbon sequestration: {carbon_t:,.0f} tonnes CO2",
+                f"Biodiversity Index: {bio_idx}/100"
+            ],
+            policy_recommendations=[
+                "Add your GROQ_API_KEY to generate custom policy analysis and recommendations."
+            ]
+        )
+
     eco_name    = valuation_result.get("ecosystem_name", "ecosystem")
     eco_type    = valuation_result.get("ecosystem_type", "")
     area        = valuation_result.get("area_hectares", 0)
