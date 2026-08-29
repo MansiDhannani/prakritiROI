@@ -47,11 +47,12 @@ if r.status_code == 200:
     cards = impact_data.get("impacts", [])
     print(f"   [OK] Impact cards generated: {len(cards)} cards")
     for i, card in enumerate(cards, 1):
-        # Print using safe characters for console compatibility
-        icon_name = card.get('icon', '')
-        metric = card.get('metric', '')
+        metric = card.get('metric', '').replace('₹', 'Rs. ')
         label = card.get('label', '')
-        print(f"      {i}. ({icon_name}) {metric} - {label}")
+        # Filter non-ASCII characters
+        metric_safe = metric.encode('ascii', 'ignore').decode('ascii')
+        label_safe = label.encode('ascii', 'ignore').decode('ascii')
+        print(f"      {i}. {metric_safe} - {label_safe}")
 else:
     print(f"   [FAIL] Impact endpoint failed: {r.status_code}")
     print(f"      {r.text}")
