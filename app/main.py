@@ -16,18 +16,18 @@ async def lifespan(app: FastAPI):
     # ── Startup ───────────────────────────────────────────────────────────────
     from app.models.database import init_db
     init_db()
-    print("✅ Database initialised")
+    print("[OK] Database initialised")
 
     # Pre-load RAG index (builds from coefficients on first run, loads from disk after)
     try:
         if not os.path.exists("india_ecosystem_coefficients.json"):
-            print("⚠ Warning: india_ecosystem_coefficients.json not found. RAG index may be empty.")
+            print("[WARN] Warning: india_ecosystem_coefficients.json not found. RAG index may be empty.")
             
         from app.services.rag_service import get_store
         store = get_store()
-        print(f"✅ RAG index ready: {store.count()} documents")
+        print(f"[OK] RAG index ready: {store.count()} documents")
     except Exception as e:
-        print(f"⚠ RAG index failed to load: {e}")
+        print(f"[WARN] RAG index failed to load: {e}")
 
     yield
     # ── Shutdown ──────────────────────────────────────────────────────────────

@@ -25,17 +25,17 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     # Check for API Key
     if os.getenv("GROQ_API_KEY"):
-        print("✅ GROQ_API_KEY found in environment")
+        print("[OK] GROQ_API_KEY found in environment")
     else:
-        print("❌ GROQ_API_KEY NOT found. AI features will be disabled.")
+        print("[FAIL] GROQ_API_KEY NOT found. AI features will be disabled.")
 
     # Pre-load RAG index on startup
     try:
         from app.services.rag_service import get_store
         store = get_store()
-        print(f"✅ RAG index ready: {store.count()} documents")
+        print(f"[OK] RAG index ready: {store.count()} documents")
     except Exception as e:
-        print(f"⚠ RAG index failed to load: {e}")
+        print(f"[WARN] RAG index failed to load: {e}")
     yield
 
 app = FastAPI(
