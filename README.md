@@ -1,136 +1,123 @@
-# EcoValue India — Backend API
+# EcoValue India — Prakriti ROI Valuation Engine
 
-FastAPI backend for the India Ecosystem Services Valuation Engine.
+FastAPI backend and valuation engine for the India Ecosystem Services Valuation Engine (Prakriti ROI).
 
-## Quick Start
+---
 
+## Core Features
+
+1. **Ecosystem Valuation Engine**: Computes annual services and 10-year Net Present Value (NPV) using regional multipliers (FSI ISFR, TEEB India Sukhdev, TERI).
+2. **Land Use Scenario Comparison**: Compares conservation, restoration, and alternative land uses (e.g., solar farms, infrastructure development) over 10-year horizons.
+3. **Pure-Python RAG System**: Custom TF-IDF vector store (`app/services/vector_store.py`) that indexes and searches Indian case studies and coefficients offline.
+4. **AI Policy Briefs (Groq AI)**: Automatically retrieves RAG context and uses the `qwen/qwen3.8-27b` model via the official `groq` SDK to generate grounded policy narratives.
+5. **Human-Scale Impact Metrics**: Converts monetary valuations into tangible quantities (e.g., "people supplied clean water", "mature trees equivalent").
+6. **Real-Time WebSocket Ticker**: Broadcasts live valuation session updates to all connected dashboard instances.
+7. **PDF Report Downloader**: Generates print-ready PDF briefs containing valuation charts, scenario breakdowns, and AI narratives via ReportLab.
+
+---
+
+## Quick Start & Setup
+
+### 1. Install Dependencies
+Ensure you have Python 3.10+ installed. Install the required libraries:
 ```bash
-# 1. Install dependencies
 pip install -r requirements.txt
-
-# 2. Set your GROQ API key (only needed for AI narrative feature)
-cp .env.example .env
-# Edit .env and add your GROQ_API_KEY (get free key at https://console.groq.com)
-
-# 3. Run the server
-python run.py
-# → http://localhost:8000
-# → Swagger docs: http://localhost:8000/docs
 ```
+
+### 2. Configure Environment Variables
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+Open `.env` and configure your credentials:
+- `GROQ_API_KEY`: Get a free key at [console.groq.com](https://console.groq.com) (no credit card needed).
+- `DATABASE_URL`: Leave blank to automatically use the local SQLite database (`ecovalue.db`).
+
+### 3. Run the Server
+Start the Uvicorn ASGI server:
+```bash
+python run.py
+```
+- **Web Application**: Access the dashboard at [http://localhost:8000](http://localhost:8000)
+- **API Documentation**: Visit the Swagger interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
 ## API Endpoints
 
+### HTML & Frontend Routes
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET  | `/`                          | API overview |
-| GET  | `/health`                    | Health + Claude AI status |
-| GET  | `/api/v1/ecosystems`         | List all ecosystems |
-| GET  | `/api/v1/ecosystems/{type}`  | Detail for one ecosystem |
-| POST | `/api/v1/valuate`            | **Core valuation** |
-| GET  | `/api/v1/scenarios`          | List land use scenarios |
-| POST | `/api/v1/scenarios/compare`  | **Compare scenarios** |
-| GET  | `/api/v1/carbon-prices`      | Carbon pricing methods |
-| POST | `/api/v1/report/narrative`   | AI policy narrative (Groq AI) |
-| POST | `/api/v1/report/pdf`         | Generate PDF report (base64) |
-| POST | `/api/v1/report/pdf/download`| PDF direct download |
+| GET    | `/` / `/index` | Main Landing Page |
+| GET    | `/dashboard` | Interactive Valuations Dashboard |
+| GET    | `/history` | Past Valuations History Logs |
+| GET    | `/about` | Methodology & Framework References |
+| GET    | `/live` | Real-Time Viewer & Live WebSocket Feed |
+| GET    | `/ecosystem_dashboard` | Comparative Ecosystem Coefficient Explorer |
 
----
+### REST API v1 Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/health` | Server Health Status |
+| GET    | `/api/v1/regions` | Get list of regions and multipliers |
+| GET    | `/api/v1/ecosystems` | Get list of ecosystems and services |
+| POST   | `/api/v1/valuate` | Run ecosystem NPV & carbon valuation (saves to DB) |
+| POST   | `/api/v1/scenarios/compare` | Run NPV comparative analysis across scenarios |
+| POST   | `/api/v1/impact` | Convert valuation data into human-scale cards |
+| POST   | `/api/v1/report/narrative` | Generate RAG-grounded AI policy brief (Groq AI) |
+| POST   | `/api/v1/report/pdf/download` | Direct binary download of ReportLab PDF |
+| GET    | `/api/v1/history` | List past valuation records |
+| GET    | `/api/v1/analytics` | Get aggregated database stats |
+| GET    | `/api/v1/parcels` | List synthetic land parcels for lookup |
+| GET    | `/api/v1/parcel/{id}` | Retrieve details for a specific land parcel |
 
-## Example Request — Valuate
+### RAG Administration
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/api/v1/rag/search` | Search RAG database directly (debugging) |
+| GET    | `/api/v1/rag/stats` | View index statistics |
+| POST   | `/api/v1/rag/rebuild` | Force-rebuild index from source coefficients |
 
-```bash
-curl -X POST http://localhost:8000/api/v1/valuate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ecosystem_type": "wetlands_inland",
-    "area_hectares": 250,
-    "region": "indo_gangetic_plain",
-    "carbon_pricing": "voluntary_market",
-    "discount_rate": 0.08,
-    "projection_years": 10,
-    "value_type": "midpoint",
-    "location_name": "Harike Wetland, Punjab"
-  }'
-```
-
-## Example Request — Compare Scenarios
-
-```bash
-curl -X POST http://localhost:8000/api/v1/scenarios/compare \
-  -H "Content-Type: application/json" \
-  -d '{
-    "ecosystem_type": "wetlands_inland",
-    "area_hectares": 250,
-    "region": "indo_gangetic_plain",
-    "scenarios": ["preserve", "restore", "solar", "development"],
-    "projection_years": 10
-  }'
-```
-
-## Example Request — PDF Report
-
-```bash
-curl -X POST http://localhost:8000/api/v1/report/pdf/download \
-  -H "Content-Type: application/json" \
-  -d '{
-    "valuation_result": { ...paste valuate response here... },
-    "scenario_results": [ ...paste scenario compare response scenarios array... ],
-    "location_name": "Harike Wetland",
-    "prepared_for": "Punjab State Forest Department"
-  }' \
-  --output report.pdf
-```
+### WebSockets
+| Protocol | Endpoint | Description |
+|----------|----------|-------------|
+| WS       | `/api/v1/ws/ticker` | Broadcasts new valuation logs to ticker managers |
 
 ---
 
 ## Project Structure
 
 ```
-ecovalue_backend/
-├── run.py                          # Entry point
-├── requirements.txt
-├── .env.example
-└── app/
-    ├── main.py                     # FastAPI app + CORS
-    ├── data/
-    │   └── coefficients.py         # India ecosystem database (TEEB, FSI, TERI)
-    ├── models/
-    │   └── schemas.py              # Pydantic request/response models
-    ├── services/
-    │   ├── valuation_engine.py     # Core NPV + services calculation
-    │   ├── narrative_service.py    # Claude AI policy narrative
-    │   └── pdf_service.py          # ReportLab PDF generation
-    └── routers/
-        ├── health.py
-        ├── valuation.py
-        ├── scenarios.py
-        └── report.py
+prakritiROI-main/
+├── run.py                      # Server entry point
+├── main.py                     # Root FastAPI application & route register
+├── live.py                     # WebSockets ticker and /impact router
+├── requirements.txt            # Project dependencies
+├── .env.example                # Config template
+├── index.html                  # Landing page
+├── dashboard.html              # Core dashboard
+├── history.html                # Valuation history UI
+├── about.html                  # Framework overview UI
+├── live.html                   # WebSocket ticker visualizer
+├── ecosystem_dashboard.html    # Coefficients explorer UI
+├── app/
+│   ├── data/
+│   │   └── coefficients.py     # Indian ecosystem service databases
+│   ├── models/
+│   │   ├── database.py         # SQLAlchemy database initialization (SQLite/Postgres)
+│   │   └── schemas.py          # Pydantic request/response validation schemas
+│   └── services/
+│       ├── valuation_engine.py # Valuation & NPV math logic
+│       ├── narrative_service.py# Groq SDK AI narrator (uses qwen/qwen3.8-27b)
+│       ├── pdf_service.py      # ReportLab PDF document builder
+│       ├── rag_service.py      # TF-IDF RAG document generator
+│       └── vector_store.py     # Custom pure-Python vector search store
+└── static/                     # CSS stylesheets and client Javascript files
 ```
 
 ---
 
-## Data Sources
+## Deployment
 
-All coefficients in INR/hectare/year from:
-- **Sukhdev et al. (2008)** — TEEB India Study
-- **FSI ISFR 2023** — Forest Survey of India
-- **TERI** Ecosystem Services Publications
-- **MoEFCC** NATCOM to UNFCCC
-- **IIFM Verma (2000)** — HP Forest Valuation
-- **Hussain & Badola (2010)** — Wetland Services
-- **CPCB** Water Quality Reports
-- **ATREE** Western Ghats Studies
-- **CPR India** Urban Ecosystem Services
-
----
-
-## Deploy to Railway
-
-```bash
-# railway.toml already configured
-railway up
-```
-
-Or Render: set Start Command to `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Railway**: Uses the configured `railway.toml` and database env injections out-of-the-box. Run `railway up`.
+- **Render**: Create a Web Service with the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`. Ensure you inject the `GROQ_API_KEY` environment variable.
