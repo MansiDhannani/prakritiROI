@@ -632,7 +632,7 @@ async function checkAPI() {
     const r = await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(3000) })
     const d = await r.json()
     document.getElementById('statusDot').className = 'status-dot'
-    document.getElementById('statusText').textContent = d.groq_ai_enabled ? 'API + Groq ready' : 'API ready (no Groq key)'
+    document.getElementById('statusText').textContent = 'API ready'
   } catch {
     document.getElementById('statusDot').className = 'status-dot offline'
     document.getElementById('statusText').textContent = 'API offline — start backend'
